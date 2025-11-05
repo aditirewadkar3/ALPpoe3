@@ -1,0 +1,133 @@
+/* public/styles.css - Enhanced Styling */
+
+/* 1. Global & Body Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Modern, clean font */
+    background-color: #eef1f5; /* Very light background */
+    color: #2c3e50; /* Darker, more professional text color */
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Center container vertically */
+    min-height: 100vh;
+    padding: 20px;
+    margin: 0;
+}
+
+/* 2. Container Styling */
+.container {
+    background: #ffffff;
+    padding: 40px; /* Increased padding */
+    border-radius: 12px; /* Softer rounded corners */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Deeper shadow for elevation */
+    width: 100%;
+    max-width: 500px; /* Slightly narrower for focus */
+    transition: all 0.3s ease; /* Transition for potential hover effects */
+}
+
+/* 3. Heading */
+h1 {
+    text-align: center;
+    color: #1e88e5; /* Primary blue color */
+    margin-bottom: 30px;
+    font-size: 1.8em;
+    font-weight: 600;
+    border-bottom: 2px solid #eef1f5; /* Subtle separation line */
+    padding-bottom: 10px;
+}
+
+/* 4. Form and Input Styles */
+form {
+    padding: 10px 0;
+}
+
+form label {
+    display: block;
+    margin-top: 15px; /* More vertical spacing */
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #34495e;
+    font-size: 0.95em;
+}
+
+form input, form select {
+    width: 100%;
+    padding: 12px; /* Slightly more padding */
+    border: 1px solid #ccc;
+    border-radius: 6px; /* Slightly rounder input fields */
+    box-sizing: border-box;
+    font-size: 1em;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+form input:focus, form select:focus {
+    border-color: #1e88e5; /* Highlight border on focus */
+    box-shadow: 0 0 5px rgba(30, 136, 229, 0.5); /* Subtle glow */
+    outline: none;
+}
+
+/* 5. Button Styles */
+button {
+    background-color: #1e88e5; /* Primary color */
+    color: white;
+    padding: 14px 25px; /* Slightly larger button */
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    width: 100%;
+    margin-top: 25px;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+button:hover {
+    background-color: #1565c0; /* Darker shade on hover */
+    transform: translateY(-2px); /* Slight lift effect */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+/* 6. Result Display Area */
+.result {
+    margin-top: 30px;
+    padding: 20px;
+    border: 1px solid #c8e6c9;
+    background-color: #f7fcf7;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 1.1em;
+    font-weight: 600;
+    transition: all 0.4s ease;
+}
+
+.result h2 {
+    color: #388e3c; /* Success color */
+    margin-top: 0;
+    font-size: 1.4em;
+}
+
+/* Status Span Styling (from index.html script) */
+.result span[style*="green"] {
+    color: #28a745 !important;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 4px;
+    background-color: #e6ffed;
+}
+
+.result span[style*="red"] {
+    color: #dc3545 !important;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 4px;
+    background-color: #fef1f2;
+}
+
+#db-status p {
+    color: #1e88e5;
+    font-style: italic;
+    margin-top: 10px;
+}

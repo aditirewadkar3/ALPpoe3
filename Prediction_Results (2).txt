@@ -1,0 +1,11 @@
+Customer Churn Prediction Results
+
+id	 | 	CreditScore	 | 	Geography	 | 	Gender	 | 	Age	 | 	Tenure	 | 	Balance	 | 	NumOfProducts	 | 	HasCrCard	 | 	IsActiveMember	 | 	EstimatedSalary	 | 	prediction_code	 | 	status_text
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+7	 | 	600	 | 	Spain	 | 	Female	 | 	40	 | 	2	 | 	600000.00	 | 	1	 | 	1	 | 	1	 | 	120000.00	 | 	0	 | 	Stay
+6	 | 	600	 | 	Spain	 | 	Female	 | 	40	 | 	2	 | 	60000.00	 | 	1	 | 	1	 | 	0	 | 	120000.00	 | 	1	 | 	Leave
+5	 | 	60	 | 	Spain	 | 	Male	 | 	30	 | 	2	 | 	60000.00	 | 	1	 | 	0	 | 	0	 | 	120000.00	 | 	1	 | 	Leave
+4	 | 	60	 | 	Spain	 | 	Male	 | 	30	 | 	10	 | 	60000.00	 | 	4	 | 	0	 | 	0	 | 	120000.00	 | 	1	 | 	Leave
+3	 | 	60	 | 	Spain	 | 	Male	 | 	75	 | 	10	 | 	60000.00	 | 	4	 | 	0	 | 	0	 | 	1200.00	 | 	1	 | 	Leave
+2	 | 	600	 | 	Germany	 | 	Female	 | 	40	 | 	10	 | 	800.00	 | 	4	 | 	0	 | 	1	 | 	1200.00	 | 	1	 | 	Leave
+1	 | 	600	 | 	France	 | 	Male	 | 	40	 | 	3	 | 	80000.00	 | 	1	 | 	1	 | 	1	 | 	120000.00	 | 	0	 | 	Stay

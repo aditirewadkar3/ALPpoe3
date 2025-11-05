@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Churn Predictor</title>
+    <link rel="stylesheet" href="style.css"> 
+</head>
+<body>
+    <div class="container">
+        <h1>Bank Churn Prediction</h1>
+        <p>Enter the customer's details to predict if they will churn (Leave).</p>
+
+        <form id="predictionForm">
+            <label for="CreditScore">Credit Score:</label>
+            <input type="number" id="CreditScore" required value="600"><br>
+
+            <label for="Age">Age:</label>
+            <input type="number" id="Age" required value="40"><br>
+            
+            <label for="Tenure">Tenure (Years):</label>
+            <input type="number" id="Tenure" required value="3"><br>
+
+            <label for="Balance">Balance:</label>
+            <input type="number" step="0.01" id="Balance" required value="80000.00"><br>
+
+            <label for="NumOfProducts">Number of Products:</label>
+            <input type="number" id="NumOfProducts" required value="1"><br>
+            
+            <label for="EstimatedSalary">Estimated Salary:</label>
+            <input type="number" step="0.01" id="EstimatedSalary" required value="120000.00"><br>
+
+            <label for="Geography">Geography:</label>
+            <select id="Geography" required>
+                <option value="France">France</option>
+                <option value="Germany">Germany</option>
+                <option value="Spain">Spain</option>
+            </select><br>
+
+            <label for="Gender">Gender:</label>
+            <select id="Gender" required>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+            </select><br>
+
+            <label for="HasCrCard">Has Credit Card:</label>
+            <select id="HasCrCard" required>
+                <option value="1">Yes</option>
+                <option value="0">No</option>
+            </select><br>
+
+            <label for="IsActiveMember">Is Active Member:</label>
+            <select id="IsActiveMember" required>
+                <option value="1">Yes</option>
+                <option value="0">No</option>
+            </select><br>
+            
+            <button type="submit">Predict Churn</button>
+            <button id="downloadButton" type="button" style="margin-top: 30px; background-color: #28a745;">
+                Download All Results (.txt)
+            </button>
+        </form>
+
+        <div id="result" class="result">
+        </div>
+
+        <div id="db-status"></div>
+    </div>
+
+   
+    <script>
+        
+        document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const form = e.target;
+            const resultDiv = document.getElementById('result');
+            const dbStatusDiv = document.getElementById('db-status');
+            resultDiv.innerHTML = 'Predicting...';
+            dbStatusDiv.innerHTML = '';
+
+            const data = {
+              
+                CreditScore: parseInt(form.CreditScore.value),
+                Geography: form.Geography.value,
+                Gender: form.Gender.value,
+                Age: parseInt(form.Age.value),
+                Tenure: parseInt(form.Tenure.value),
+                Balance: parseFloat(form.Balance.value),
+                NumOfProducts: parseInt(form.NumOfProducts.value),
+                HasCrCard: parseInt(form.HasCrCard.value),
+                IsActiveMember: parseInt(form.IsActiveMember.value),
+                EstimatedSalary: parseFloat(form.EstimatedSalary.value)
+            };
+
+            try {
+                const response = await fetch('http://localhost:3000/api/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const jsonResponse = await response.json();
+                
+                
+                const formatInputData = (input) => {
+                    let html = '<div style="text-align: left; padding: 10px; background-color: #f9f9f9; border-radius: 4px;">';
+                    html += '<strong>Entered Data:</strong><ul>';
+                  
+                    for (const [key, value] of Object.entries(input)) {
+                     
+                        let displayValue = value;
+                        if (key === 'HasCrCard' || key === 'IsActiveMember') {
+                            displayValue = value == 1 ? 'Yes' : 'No';
+                        } else if (typeof value === 'number' && key !== 'CreditScore' && key !== 'Age' && key !== 'Tenure' && key !== 'NumOfProducts') {
+                           
+                            displayValue = parseFloat(value).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+                        }
+                        html += `<li><strong>${key}:</strong> ${displayValue}</li>`;
+                    }
+                    html += '</ul></div>';
+                    return html;
+                };
+
+                if (response.ok || (response.status === 200 && jsonResponse.error)) {
+                    const statusText = jsonResponse.prediction === 1 ? 
+                        '<span style="color: red;">WILL LEAVE (Churn)</span>' : 
+                        '<span style="color: green;">WILL STAY (No Churn)</span>';
+                    
+                    const inputDisplay = formatInputData(jsonResponse.inputData || data); // Use data if inputData isn't explicitly returned
+                    
+                    resultDiv.innerHTML = `<h2>Prediction Result:</h2><p>Customer ${statusText}</p>${inputDisplay}`;
+                    
+                    const dbMessage = jsonResponse.error && jsonResponse.error.includes('Database logging failed') 
+                                      ? '<p style="color: orange;">Prediction received, but database logging failed. Check server console.</p>'
+                                      : '<p style="color: blue;">Prediction and data successfully logged to MySQL database.</p>';
+
+                    dbStatusDiv.innerHTML = dbMessage;
+
+                } else {
+                    // Handle server-side errors (e.g., Python script failure 500)
+                    const errorMessage = jsonResponse.error || 'Prediction failed. Check server console for details.';
+                    resultDiv.innerHTML = `<h2>Error:</h2><p>${errorMessage}</p>`;
+                    dbStatusDiv.innerHTML = '';
+                }
+
+            } catch (error) {
+                resultDiv.innerHTML = `<h2>Network Error:</h2><p>Could not connect to the server (Is the Node.js server running?).</p>`;
+            }
+        });
+
+
+        document.getElementById('downloadButton').addEventListener('click', function() {
+            window.location.href = 'http://localhost:3000/api/download-results';
+        });
+
+    </script>
+</body>
+</html>
