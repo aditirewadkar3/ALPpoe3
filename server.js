@@ -1,3 +1,4 @@
+// server.js
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -5,14 +6,31 @@ const mysql = require('mysql2/promise');
 const { spawn } = require('child_process'); 
 const fs = require('fs'); 
 const path = require('path'); 
+const session = require('express-session');
+const bcrypt = require('bcrypt'); // NEW: Import bcrypt for password hashing
 
 const app = express();
 const PORT = 3000;
 
+// --- Admin Credentials (Used for Initial Database Setup Only) ---
+// We will insert this user automatically if the users table is empty
+const INITIAL_ADMIN_USER = 'admin';
+const INITIAL_ADMIN_PASS = 'password123'; 
+const SALT_ROUNDS = 10; // For bcrypt hashing
+
+// --- Session Middleware ---
+app.use(session({
+    secret: 'a-strong-secret-key-for-session',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { maxAge: 3600000 }
+}));
+
+// --- Middleware ---
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static('public')); 
 
+// --- MySQL Connection Configuration ---
 const dbConfig = {
     host: 'localhost',
     user: 'root',      
@@ -20,7 +38,95 @@ const dbConfig = {
     database: 'prediction' 
 };
 
-app.post('/api/predict', async (req, res) => {
+// --- INITIALIZATION FUNCTION: Ensure Admin User Exists ---
+const initializeAdminUser = async () => {
+    let connection;
+    try {
+        connection = await mysql.createConnection(dbConfig);
+        
+        // 1. Check if the 'users' table exists and has any users
+        const [rows] = await connection.execute('SELECT COUNT(*) AS count FROM users');
+        
+        if (rows[0].count === 0) {
+            console.log("Database empty. Creating initial admin user...");
+            
+            // 2. Hash the initial password
+            const hashedPassword = await bcrypt.hash(INITIAL_ADMIN_PASS, SALT_ROUNDS);
+            
+            // 3. Insert the user with the HASHED password
+            const sql = 'INSERT INTO users (username, password) VALUES (?, ?)';
+            await connection.execute(sql, [INITIAL_ADMIN_USER, hashedPassword]);
+            
+            
+        }
+    } catch (err) {
+        // This is where database connection or query errors show up
+        console.error('Database Initialization Error:', err.message);
+        console.log("FATAL: Cannot connect to database or initialize user table.");
+    } finally {
+        if (connection) connection.end();
+    }
+};
+
+
+// --- Authentication Check Middleware ---
+const requireLogin = (req, res, next) => {
+    if (req.session && req.session.isAdmin) {
+        return next();
+    } 
+    // Redirect to the login page path
+    res.redirect('/login.html');
+};
+
+// --- Static File Serving ---
+// Serve files from the 'public' directory
+app.use(express.static('public'));
+
+// --- Main Page Route (Protected) ---
+app.get('/', requireLogin, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// --- UPDATED API Endpoint for Login (Uses Database & Hashing) ---
+app.post('/api/login', async (req, res) => {
+    const { username, password } = req.body;
+    let connection;
+
+    try {
+        connection = await mysql.createConnection(dbConfig);
+        
+        // 1. Retrieve user data (especially the HASHED password) from the database
+        const [rows] = await connection.execute('SELECT password FROM users WHERE username = ?', [username]);
+
+        if (rows.length === 0) {
+            // User not found
+            return res.status(401).json({ success: false, message: 'Invalid username or password.' });
+        }
+
+        const hashedPassword = rows[0].password;
+        
+        // 2. Compare the plain-text password with the HASHED password
+        const match = await bcrypt.compare(password, hashedPassword);
+
+        if (match) {
+            
+            req.session.isAdmin = true;
+            return res.json({ success: true, redirect: '/' });
+        } else {
+            // Password mismatch
+            return res.status(401).json({ success: false, message: 'Invalid username or password.' });
+        }
+
+    } catch (err) {
+        console.error('Login Database Error:', err.message);
+        return res.status(500).json({ success: false, message: 'Server authentication error.' });
+    } finally {
+        if (connection) connection.end();
+    }
+});
+
+// --- Existing API Endpoint to Predict Churn (Protected) ---
+app.post('/api/predict', requireLogin, async (req, res) => {
     const customerData = req.body;
     let predictionResult = null;
     
@@ -73,6 +179,7 @@ app.post('/api/predict', async (req, res) => {
         connection = await mysql.createConnection(dbConfig);
         const statusText = predictionResult === 0 ? 'Stay' : 'Leave';
         
+        // --- Prediction Results Table Insertion ---
         const sql = `INSERT INTO prediction_results (
             CreditScore, Geography, Gender, Age, Tenure, Balance, NumOfProducts, HasCrCard, IsActiveMember, EstimatedSalary,
             prediction_code, status_text
@@ -102,7 +209,8 @@ app.post('/api/predict', async (req, res) => {
 });
 
 
-app.get('/api/download-results', async (req, res) => {
+// --- NEW API Endpoint for File Operations (Protected) ---
+app.get('/api/download-results', requireLogin, async (req, res) => {
     let connection;
     const filePath = path.join(__dirname, 'Result.txt');
     
@@ -113,6 +221,7 @@ app.get('/api/download-results', async (req, res) => {
         
         console.log('\n--- MySQL Query Results ---');
         console.table(rows);
+        console.log('---------------------------\n');
 
         let fileContent = 'Customer Churn Prediction Results\n\n';
         
@@ -150,7 +259,10 @@ app.get('/api/download-results', async (req, res) => {
 });
 
 
+// --- Server Startup ---
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
-    console.log(`Go to http://localhost:${PORT} to access the application.`);
+    console.log(`Access the application via the login page: http://localhost:${PORT}/login.html`);
+    // Run initialization function after server starts
+    initializeAdminUser(); 
 });

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <link rel="stylesheet" href="style.css"> 
+    <style>
+        .container {
+            max-width: 400px;
+            margin-top: 100px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 14px 20px;
+            margin: 8px 0;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+        }
+        #login-message {
+            color: red;
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Login</h1>
+       
+
+        <form id="loginForm">
+            <label for="username"><b>Username</b></label>
+            <input type="text" placeholder="Enter Username" name="username" required>
+
+            <label for="password"><b>Password</b></label>
+            <input type="password" placeholder="Enter Password" name="password" required>
+            
+            <button type="submit">Login</button>
+            <div id="login-message"></div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = e.target.username.value;
+            const password = e.target.password.value;
+            const messageDiv = document.getElementById('login-message');
+            messageDiv.textContent = 'Logging in...';
+
+            try {
+                const response = await fetch('http://localhost:3000/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const jsonResponse = await response.json();
+                
+                if (jsonResponse.success) {
+                    // Redirect to the protected main page
+                    window.location.href = jsonResponse.redirect;
+                } else {
+                    // Show error message from server
+                    messageDiv.textContent = jsonResponse.message || 'Login failed. Please try again.';
+                }
+            } catch (error) {
+                messageDiv.textContent = 'Network Error: Could not connect to server.';
+            }
+        });
+    </script>
+</body>
+</html>

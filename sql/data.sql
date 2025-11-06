@@ -2,6 +2,18 @@ CREATE DATABASE IF NOT EXISTS prediction;
 USE prediction;
 
 
+USE prediction;
+
+-- Drop and create the users table
+DROP TABLE IF EXISTS users;
+
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL, -- Stores the secure hash
+    role VARCHAR(50) DEFAULT 'admin'
+);
+select * from users;
 DROP TABLE IF EXISTS prediction_results;
 
 CREATE TABLE prediction_results (

@@ -1,0 +1,4 @@
+npm init -y
+npm install express body-parser cors mysql2
+pip install pandas numpy scikit-learn
+npm install bcrypt
